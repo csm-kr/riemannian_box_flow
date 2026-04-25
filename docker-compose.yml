@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  bflow:
+    build: .
+    image: bflow
+    container_name: bflow_dev
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - DISPLAY=${DISPLAY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      - .:/workspace/riemannian_box_flow
+      - /tmp/.X11-unix:/tmp/.X11-unix   # cv2.imshow() X11 forwarding
+    ports:
+      - "6006:6006"   # TensorBoard
+    stdin_open: true
+    tty: true
+    working_dir: /workspace/riemannian_box_flow
+    command: bash
