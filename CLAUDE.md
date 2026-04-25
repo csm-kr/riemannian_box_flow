@@ -114,6 +114,22 @@ TDD는 TODO를 실제 구현할 때만 적용한다.
 
 ---
 
+## 11. Git 규칙
+
+- feature 단위로 브랜치 분리: `feature/{module}-{작업명}` (예: `feature/dataset-sampler`)
+- 한 feature = 한 브랜치 = 한 PR
+- 작업 완료 시 master로 merge 후 브랜치 삭제
+- master에 직접 push 금지 (스캐폴드/문서 정리 같은 예외만)
+
+```bash
+git checkout -b feature/{module}-{작업명}
+# ... 구현 + 커밋
+git push -u origin feature/{module}-{작업명}
+# PR → review → merge
+```
+
+---
+
 ## 핵심 요약
 
 설계는 `plans`에서 하고, 실행은 `TODO`에서 하며, TDD는 TODO를 코드로 구현할 때만 적용한다.
