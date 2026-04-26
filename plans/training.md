@@ -135,11 +135,35 @@ save as: outputs/gif/{step:06d}_{idx}.gif
 
 ---
 
-## 7. 체크포인트 / 로깅
+## 7. 출력 디렉토리 / 체크포인트 / 로깅
 
-- 체크포인트: `outputs/ckpt/step_{N}.pt` (model state_dict + optimizer + step)
-- 마지막 best val loss는 별도 `best.pt`
-- 로깅: TensorBoard (`outputs/tb/`), 이미 docker-compose에서 6006 포트 노출
+### 7.1 출력 디렉토리 — 실험 자동 numbering
+trainer는 시작 시 `outputs/`에 존재하는 `NNN_*` 폴더를 스캔하고 다음 번호를 할당:
+
+```
+outputs/
+├─ 001_smoke/
+├─ 002_short_run/
+├─ 003_full_run/
+│   ├─ tb/                       ← TensorBoard event files
+│   ├─ gif/step_{N:06d}.gif      ← 주기적 trajectory GIF
+│   ├─ ckpt/step_{N:06d}.pt      ← 주기적 ckpt (model + optim)
+│   ├─ ckpt/final.pt             ← 마지막 ckpt (model only)
+│   └─ train_log.txt             ← stdout mirror
+└─ ...
+```
+
+CLI: `--run-name {name}` (기본 `run`). 같은 이름이라도 번호가 다르면 충돌하지 않음.
+
+### 7.2 체크포인트
+- 주기적: `ckpt/step_{N:06d}.pt` (model_state + optim_state + step + cfg)
+- 최종: `ckpt/final.pt` (model_state + cfg, optim 제외해 작게)
+
+### 7.3 로깅
+- TensorBoard: 매 `log_every` step에 `train/loss`, `train/lr` scalar
+- 매 `val_every` step에 `val/loss` scalar
+- 매 `gif_every` step에 trajectory GIF는 `gif/` 디렉토리에 파일로 저장 + (선택) `add_image`로 frame 일부 TB에 등록
+- 6006 포트는 docker-compose에 이미 노출됨 → `tensorboard --logdir outputs --bind_all`
 
 ---
 
@@ -185,11 +209,11 @@ training/
 ---
 
 ## 11. TBD (구현 단계)
-- 정확한 batch size / step 수 (GPU 메모리 보고 조정)
-- bf16 vs fp32 (DINOv2 안정성 확인)
+- bf16 vs fp32 (DINOv2 안정성 확인 — short run은 fp32로 통과)
 - RK4 solver 추가 여부
-- val 빈도 / GIF 저장 빈도
+- val 빈도 / GIF 저장 빈도 (full run에서 조정 가능)
 - DINOv2 patch token 정확한 수 (model.md §6 TBD와 동일)
+- TB에 GIF frame 일부를 `add_image`로 띄울지 (현재는 파일로만)
 
 ---
 
