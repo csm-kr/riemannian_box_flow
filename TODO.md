@@ -1,15 +1,12 @@
 # TODO.md
 
 ## Now
-- [ ] `training/losses.py` (box L1 + GIoU; FM MSE는 `SignalFlowModel.fm_loss`에 이미 존재)
+- [ ] full train run (50k step, batch 64) + train/val 곡선 + 최종 GIF 확인
 
-## Next (Phase 1 학습 / 추론)
-- [ ] `training/config.py` (dataclass — lr, batch, K, steps, λ_box, paths)
-- [ ] `training/trainer.py` (train loop, val, ckpt, tb logging, periodic GIF dump)
-- [ ] `training/train.py` (entry point — config 로드 + run)
-- [ ] 1-batch forward/backward sanity + micro-set overfit
-- [ ] full train run (50k step, AdamW + warmup + cosine, batch 64)
-- [ ] K=10/16/30 비교 inference
+## Next
+- [ ] K=10/16/30 비교 inference + GIF 비교
+- [ ] (선택) bf16 AMP 안정성 확인
+- [ ] Phase 2 (Riemannian) 착수 검토
 
 ## Future (Phase 2 — Riemannian, Phase 1 검증 후)
 - [ ] `model/charts/global_chart.py`
@@ -31,4 +28,6 @@
 - [x] `model/components/dit_block.py` (self-attn + cross-attn(RoPE) + adaLN)
 - [x] `model/backbone.py` (DiT 조립)
 - [x] `model/flow_signal.py` (Phase 1 `SignalFlowModel` + ODE sample)
-- [x] `training/visualize.py` (trajectory → frames → GIF, MNIST 1샘플 sanity 통과)
+- [x] `training/visualize.py` (trajectory → frames → GIF)
+- [x] `training/{config,trainer,train}.py` (FM-only Phase 1 trainer)
+- [x] Phase 1 smoke (50 step) + short run (1000 step) — loss 4.53→1.23, val 1.47→1.17

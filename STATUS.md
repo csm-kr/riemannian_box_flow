@@ -15,9 +15,15 @@
   - Riemannian (global/local) 설계는 §7에 reference로 보존
 
 ## 진행 중
-- [ ] `training/losses.py` (box L1 + GIoU; FM MSE는 flow_signal에 이미 있음)
+- [ ] full-train run (50k step, batch 64) + train/val 곡선 + 후반 GIF 합리성 확인
 
 ## 최근 완료
 - [x] `plans/training.md` Phase 1 학습/추론 계획 정리
 - [x] **Phase 1 model 구성요소 완성** (master merge): signal chart, time_embed, rope2d, image_encoder, dit_block, backbone, flow_signal
-- [x] `training/visualize.py` — ODE trajectory → frames → GIF 저장 (sanity 통과: 17 frames, untrained model)
+- [x] `training/visualize.py` — ODE trajectory → frames → GIF 저장
+- [x] `training/{config,trainer,train}.py` — Phase 1 trainer (FM-only, AdamW + warmup→cosine)
+- [x] **Phase 1 short run 완료** (1000 step, batch 32, hidden 256/depth 6, DINOv2 frozen)
+  - 71.7s 소요 (~14 step/s, RTX 6000)
+  - train loss 4.53 → 1.23, val loss 1.47 → 1.17
+  - GIF / ckpt → `outputs/short_run/`
+- [x] Docker shm_size 8gb로 docker-compose.yml 업데이트 (DataLoader 워커 안정성)
