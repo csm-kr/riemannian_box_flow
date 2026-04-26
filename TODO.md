@@ -1,19 +1,14 @@
 # TODO.md
 
 ## Now
-- [ ] `model/components/image_encoder.py` (DINOv2 ViT-S/14, frozen)
+- [ ] Phase 1 학습 sanity check
+      → MNIST 1 batch로 forward/backward / loss 유한 / overfit micro-set
+      → ODE Euler K=16 sample 결과 합리적 box 확인
 
-## Next (Phase 1 — Euclidean only)
-- [ ] `model/components/dit_block.py` (self-attn + cross-attn + adaLN)
-- [ ] `model/backbone.py` (chart 무관 backbone 조립)
-- [ ] `model/flow_signal.py` — `SignalFlowModel`
-      → forward(s_t, t, image) → v_pred
-      → loss: FM MSE, target = s_1 - s_0
-      → `s_0 ~ clip(N(0,I), -3, 3)` 샘플링
-      → endpoint decode: ŝ_1 = s_t + (1-t)û → b̂_1
-- [ ] Phase 1 sanity check
-      → 1-step training이 loss 감소 / forward/backward 통과
-      → 작은 데이터로 overfit 시 GIF trajectory 합리성 확인
+## Next (Phase 1 학습 / 추론)
+- [ ] `training/` 모듈 구조 (config / losses / ode_sampler / metrics / trainer / train)
+- [ ] full train run (50k step, AdamW + warmup + cosine, batch 64)
+- [ ] K=10/16/30 비교 inference + GIF
 
 ## Future (Phase 2 — Riemannian, Phase 1 검증 후)
 - [ ] `model/charts/global_chart.py`
@@ -31,3 +26,7 @@
 - [x] `plans/training.md` 작성 (Phase 1 학습/추론 계획)
 - [x] `model/components/time_embed.py` (TDD: 실패→구현→통과)
 - [x] `model/components/rope2d.py` (TDD: 실패→구현→통과)
+- [x] `model/components/image_encoder.py` (DINOv2 ViT-S/14 wrapper, frozen)
+- [x] `model/components/dit_block.py` (self-attn + cross-attn(RoPE) + adaLN)
+- [x] `model/backbone.py` (DiT 조립)
+- [x] `model/flow_signal.py` (Phase 1 `SignalFlowModel` + ODE sample)
