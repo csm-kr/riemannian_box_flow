@@ -1,10 +1,9 @@
 # TODO.md
 
 ## Now
-- [ ] `model/components/time_embed.py` (sinusoidal + 2-layer MLP)
+- [ ] `model/components/rope2d.py` (2D RoPE)
 
 ## Next (Phase 1 — Euclidean only)
-- [ ] `model/components/rope2d.py` (2D RoPE)
 - [ ] `model/components/image_encoder.py` (DINOv2 ViT-S/14, frozen)
 - [ ] `model/components/dit_block.py` (self-attn + cross-attn + adaLN)
 - [ ] `model/backbone.py` (chart 무관 backbone 조립)
@@ -31,3 +30,4 @@
 - [x] `plans/model.md` Phase 1 / Phase 2 분리 + Euclidean 학습 스펙 확정
 - [x] `model/charts/signal.py` (TDD: 실패→구현→통과)
 - [x] `plans/training.md` 작성 (Phase 1 학습/추론 계획)
+- [x] `model/components/time_embed.py` (TDD: 실패→구현→통과)
