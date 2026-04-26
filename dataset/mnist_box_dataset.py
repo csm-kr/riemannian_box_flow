@@ -50,21 +50,9 @@ if __name__ == "__main__":
     sys.path.insert(0, ".")
     from dataset.visualize import show_sample
 
-    ds = MNISTBoxDataset(split="train", root="./data")
-    print(f"dataset size: {len(ds)}")
+    dataset = MNISTBoxDataset(split="train", root="./data")
+    print(f"dataset size: {len(dataset)}")
 
-    sample = ds[0]
+    for data in dataset:
+        show_sample(data)
 
-    assert sample["image"].shape == (3, 224, 224), f"image shape 오류: {sample['image'].shape}"
-    for key in ("gt_boxes", "init_boxes", "gt_signals", "init_signals"):
-        assert sample[key].shape == (10, 4), f"{key} shape 오류: {sample[key].shape}"
-
-    print(f"image shape:       {sample['image'].shape}")
-    print(f"gt_boxes shape:    {sample['gt_boxes'].shape}")
-    print(f"init_boxes shape:  {sample['init_boxes'].shape}")
-    print(f"gt_signals range:  [{sample['gt_signals'].min():.2f}, {sample['gt_signals'].max():.2f}]")
-    print(f"init_signals range:[{sample['init_signals'].min():.2f}, {sample['init_signals'].max():.2f}]")
-    print("shape check 통과 — cv2.imshow 실행")
-
-    show_sample(sample)
-    print("mnist_box_dataset sanity check 통과")

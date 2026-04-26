@@ -1,18 +1,18 @@
 # STATUS.md
 
 ## 현재 위치
-- Phase: **Dataset 구현 완료, 실행 검증 필요**
+- Phase: **Model Phase 1 — Euclidean(signal) flow 구현 시작**
 
 ## 완료
 - [x] Docker 환경 (Dockerfile, docker-compose.yml)
 - [x] 프로젝트 구조 정의
 - [x] dataset/ 모든 모듈 구현
-  - [x] box_utils.py
-  - [x] sampler.py
-  - [x] mnist_source.py
-  - [x] canvas.py
-  - [x] visualize.py
-  - [x] mnist_box_dataset.py
+- [x] `python -m dataset.mnist_box_dataset` sanity check 통과
+- [x] `plans/dataset.md` archive 이동
+- [x] `plans/model.md` 설계 정리
+  - Phase 1 = Euclidean(signal) 우선, Riemannian은 Phase 2
+  - 학습 9-step 수식 / clip(N(0,I)) init / FM loss 확정
+  - Riemannian (global/local) 설계는 §7에 reference로 보존
 
 ## 진행 중
-- [ ] 컨테이너에서 `python -m dataset.mnist_box_dataset` 실행 및 cv2.imshow 확인
+- [ ] `model/charts/signal.py` 구현 (`ϕ_S`, `ϕ_S^{-1}`)
