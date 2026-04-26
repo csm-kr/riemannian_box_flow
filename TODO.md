@@ -1,12 +1,9 @@
 # TODO.md
 
 ## Now
-- [ ] `model/charts/signal.py` 구현
-      → `box_to_signal(b) = 3(2b-1)`, `signal_to_box(s) = (s/3 + 1)/2`
-      → TDD: round-trip 테스트, edge case (0, 1) 검증
+- [ ] `model/components/time_embed.py` (sinusoidal + 2-layer MLP)
 
 ## Next (Phase 1 — Euclidean only)
-- [ ] `model/components/time_embed.py` (sinusoidal + 2-layer MLP)
 - [ ] `model/components/rope2d.py` (2D RoPE)
 - [ ] `model/components/image_encoder.py` (DINOv2 ViT-S/14, frozen)
 - [ ] `model/components/dit_block.py` (self-attn + cross-attn + adaLN)
@@ -32,3 +29,4 @@
 - [x] `python -m dataset.mnist_box_dataset` sanity check 통과
 - [x] `plans/dataset.md` archive 이동
 - [x] `plans/model.md` Phase 1 / Phase 2 분리 + Euclidean 학습 스펙 확정
+- [x] `model/charts/signal.py` (TDD: 실패→구현→통과)

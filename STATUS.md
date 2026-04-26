@@ -15,4 +15,7 @@
   - Riemannian (global/local) 설계는 §7에 reference로 보존
 
 ## 진행 중
-- [ ] `model/charts/signal.py` 구현 (`ϕ_S`, `ϕ_S^{-1}`)
+- [ ] `model/components/time_embed.py` (sinusoidal + 2-layer MLP)
+
+## 최근 완료
+- [x] `model/charts/signal.py` (`box_to_signal`, `signal_to_box`) — sanity check 통과 (endpoint / round-trip / batched / dtype / autograd)
