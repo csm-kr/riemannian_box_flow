@@ -1,14 +1,15 @@
 # TODO.md
 
 ## Now
-- [ ] Phase 1 학습 sanity check
-      → MNIST 1 batch로 forward/backward / loss 유한 / overfit micro-set
-      → ODE Euler K=16 sample 결과 합리적 box 확인
+- [ ] `training/losses.py` (box L1 + GIoU; FM MSE는 `SignalFlowModel.fm_loss`에 이미 존재)
 
 ## Next (Phase 1 학습 / 추론)
-- [ ] `training/` 모듈 구조 (config / losses / ode_sampler / metrics / trainer / train)
+- [ ] `training/config.py` (dataclass — lr, batch, K, steps, λ_box, paths)
+- [ ] `training/trainer.py` (train loop, val, ckpt, tb logging, periodic GIF dump)
+- [ ] `training/train.py` (entry point — config 로드 + run)
+- [ ] 1-batch forward/backward sanity + micro-set overfit
 - [ ] full train run (50k step, AdamW + warmup + cosine, batch 64)
-- [ ] K=10/16/30 비교 inference + GIF
+- [ ] K=10/16/30 비교 inference
 
 ## Future (Phase 2 — Riemannian, Phase 1 검증 후)
 - [ ] `model/charts/global_chart.py`
@@ -30,3 +31,4 @@
 - [x] `model/components/dit_block.py` (self-attn + cross-attn(RoPE) + adaLN)
 - [x] `model/backbone.py` (DiT 조립)
 - [x] `model/flow_signal.py` (Phase 1 `SignalFlowModel` + ODE sample)
+- [x] `training/visualize.py` (trajectory → frames → GIF, MNIST 1샘플 sanity 통과)
