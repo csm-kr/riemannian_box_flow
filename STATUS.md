@@ -15,9 +15,15 @@
   - Riemannian (global/local) 설계는 §7에 reference로 보존
 
 ## 진행 중
-- [ ] `model/components/rope2d.py` (2D RoPE)
+- [ ] Phase 1 학습 sanity check (1-step training loss 감소, overfit micro-set)
 
 ## 최근 완료
-- [x] `model/charts/signal.py` (`box_to_signal`, `signal_to_box`) — sanity check 통과 — master merge
-- [x] `plans/training.md` Phase 1 학습/추론 계획 정리 (signal FM + ODE Euler K∈[10,30])
-- [x] `model/components/time_embed.py` (sinusoidal + 2-layer MLP, DDPM-style t scaling)
+- [x] `model/charts/signal.py` (`box_to_signal`, `signal_to_box`) — master merge
+- [x] `plans/training.md` Phase 1 학습/추론 계획 정리
+- [x] `model/components/time_embed.py` (sinusoidal + 2-layer MLP) — master merge
+- [x] **Phase 1 model 구성요소 완성** (`feature/model-phase1` 브랜치):
+  - `model/components/rope2d.py` (2D RoPE, h/w split, complex 회전)
+  - `model/components/image_encoder.py` (DINOv2 ViT-S/14 wrapper, frozen)
+  - `model/components/dit_block.py` (self-attn + cross-attn(RoPE) + adaLN)
+  - `model/backbone.py` (DINOv2 → adapter → DiT stack → adaLN-final → linear)
+  - `model/flow_signal.py` (`SignalFlowModel`: forward / fm_loss / ODE Euler sample)
