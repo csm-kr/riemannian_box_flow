@@ -30,3 +30,4 @@
 - [x] `plans/dataset.md` archive 이동
 - [x] `plans/model.md` Phase 1 / Phase 2 분리 + Euclidean 학습 스펙 확정
 - [x] `model/charts/signal.py` (TDD: 실패→구현→통과)
+- [x] `plans/training.md` 작성 (Phase 1 학습/추론 계획)

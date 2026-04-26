@@ -18,4 +18,5 @@
 - [ ] `model/components/time_embed.py` (sinusoidal + 2-layer MLP)
 
 ## 최근 완료
-- [x] `model/charts/signal.py` (`box_to_signal`, `signal_to_box`) — sanity check 통과 (endpoint / round-trip / batched / dtype / autograd)
+- [x] `model/charts/signal.py` (`box_to_signal`, `signal_to_box`) — sanity check 통과 (endpoint / round-trip / batched / dtype / autograd) — master merge
+- [x] `plans/training.md` Phase 1 학습/추론 계획 정리 (signal FM + ODE Euler K∈[10,30])
