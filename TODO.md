@@ -1,10 +1,14 @@
 # TODO.md
 
 ## Now
+- [ ] **`outputs/` 실험 자동 numbering** (`training/trainer.py`)
+      → 시작 시 `outputs/`에 존재하는 `NNN_*` 폴더를 스캔해서 다음 번호 할당
+      → 결과 디렉토리 형식: `outputs/{NNN:03d}_{run_name}/{tb,gif,ckpt,train_log.txt}`
+      → CLI `--run-name` (기본: `run`); 이미 같은 이름이 있어도 번호로 충돌 회피
+      → 기존 `outputs/short_run/`, `outputs/smoke/`는 그대로 두거나 수동 정리 (자동 이동 X)
 - [ ] TensorBoard writer를 `training/trainer.py`에 통합
-      → `outputs/{run_name}/tb/`에 train/val loss, lr 로깅
-      → GIF는 `add_image` 또는 그대로 파일로
-      → CLI `--run-name` 추가 (기본: `full_run`)
+      → `outputs/{NNN}_{name}/tb/`에 train/val loss, lr 로깅
+      → GIF는 `add_image`로 함께 + 파일로도 저장 (외부에서 열기 편하게)
 - [ ] **Docker container 재시작** (shm_size 8gb 적용 — `docker compose down && docker compose up -d`)
 - [ ] TB 띄우기 (`tensorboard --logdir outputs --bind_all`, 6006 포트는 docker-compose에 이미 노출)
 - [ ] **Full train 실행** (50k step, batch 64, hidden 256, depth 6, DINOv2 frozen)
