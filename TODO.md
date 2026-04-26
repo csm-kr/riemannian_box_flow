@@ -1,7 +1,15 @@
 # TODO.md
 
 ## Now
-- [ ] full train run (50k step, batch 64) + train/val 곡선 + 최종 GIF 확인
+- [ ] TensorBoard writer를 `training/trainer.py`에 통합
+      → `outputs/{run_name}/tb/`에 train/val loss, lr 로깅
+      → GIF는 `add_image` 또는 그대로 파일로
+      → CLI `--run-name` 추가 (기본: `full_run`)
+- [ ] **Docker container 재시작** (shm_size 8gb 적용 — `docker compose down && docker compose up -d`)
+- [ ] TB 띄우기 (`tensorboard --logdir outputs --bind_all`, 6006 포트는 docker-compose에 이미 노출)
+- [ ] **Full train 실행** (50k step, batch 64, hidden 256, depth 6, DINOv2 frozen)
+      → ~1시간 예상 (RTX 6000, 14 step/s 기준)
+      → 후반 GIF 합리성 확인 (predicted box 위치/크기가 GT와 가까워지는지)
 
 ## Next
 - [ ] K=10/16/30 비교 inference + GIF 비교

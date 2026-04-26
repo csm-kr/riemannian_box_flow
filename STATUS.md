@@ -15,7 +15,7 @@
   - Riemannian (global/local) 설계는 §7에 reference로 보존
 
 ## 진행 중
-- [ ] full-train run (50k step, batch 64) + train/val 곡선 + 후반 GIF 합리성 확인
+- [ ] TensorBoard writer trainer 통합 → docker 재시작(shm_size 8gb 적용) → full train(50k) 실행
 
 ## 최근 완료
 - [x] `plans/training.md` Phase 1 학습/추론 계획 정리
