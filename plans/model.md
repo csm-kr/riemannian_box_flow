@@ -213,9 +213,9 @@ model/
 
 ---
 
-## 7. Riemannian (Phase 2 reference) — 보류
+## 7. Riemannian (Phase 2 — 활성)
 
-> Phase 1 검증 후 활성화. 아래는 설계 문서로만 보존.
+> **본 Phase 2에서 채택한 chart는 §7.4의 단순 chart `psi`만.** §7.1~§7.3은 reference 보존.
 
 ### 7.1 좌표계 비교표
 
@@ -253,4 +253,57 @@ decode (Exp_{b_t}):
   ĉ_y^1 = c_y^t + (1-t) h_t û_y
   ŵ_1   = w_t exp((1-t) û_w)
   ĥ_1   = h_t exp((1-t) û_h)
+```
+
+---
+
+### 7.4 Phase 2 채택 chart — 단순 `psi` (현재 진행)
+
+§7.2 Global에서 위치 부분의 `3(2c-1)` scaling을 빼고 raw `[0,1]` 좌표를 사용. **size만 log로 변환.**
+
+```
+psi(b)     = (c_x, c_y, log w, log h)
+psi_inv(y) = (y_cx, y_cy, exp(y_lw), exp(y_lh))
+```
+
+> 위치는 이미 `[0,1]`로 bounded되어 추가 scaling이 필요 없고,
+> size만 multiplicative dynamics를 받기 위해 log space로 옮긴다.
+> §7.3 scale-aware Local chart는 본 Phase 2 범위 **밖** — 향후 별도 실험.
+
+#### 7.4.1 Riemannian 학습 target (Euclidean과 model 동일, target만 다름)
+
+```
+y_0 = psi(b_0),   y_1 = psi(b_1)
+y_t = (1-t) y_0 + t y_1                      # chart-space 직선
+b_t = psi_inv(y_t)
+s_t = signal_encode(b_t) = 6 b_t - 3
+u_t = d s_t / dt                              # 분석 미분 (수치차분은 sanity)
+```
+
+#### 7.4.2 분석적 u_t 성분
+
+`s = 6b - 3` ⇒ `ds/db = 6`; chain rule로:
+
+| 성분 | u_t 분석식 | 비고 |
+|------|-----------|------|
+| `c_x` | `6 (c_x^1 - c_x^0)` | t에 무관, Euclidean과 동일 |
+| `c_y` | `6 (c_y^1 - c_y^0)` | t에 무관, Euclidean과 동일 |
+| `w`   | `6 w_t · log(w_1 / w_0)` | **state-dependent** (b_t의 w_t에 의존) |
+| `h`   | `6 h_t · log(h_1 / h_0)` | state-dependent |
+
+→ 즉 두 baseline의 실질 차이는 **size 성분의 학습 target뿐.**
+
+#### 7.4.3 모델 / ODE 추론은 Euclidean과 동일
+
+- 모델 출력은 양쪽 모두 **signal-space velocity** `(B, 10, 4)`.
+- ODE Euler 적분도 signal space에서 `s ← s + dt · v`, 마지막에 `signal_decode(s)`.
+- 즉 `flow_chart.py` = `flow_signal.py`와 같은 backbone, 같은 sample 코드, 다른 `fm_loss`만.
+
+#### 7.4.4 Edge case: 극단적으로 작은 size
+
+`b_0`은 `clip(N(0,I), -3, 3)` 후 signal_decode로 만들어지므로 `w_0 ∈ [0, 1]`.
+`log w_0`이 `-∞`에 폭주하지 않도록 `psi`는 `eps` 클램프 사용:
+
+```
+psi(b) = (c_x, c_y, log max(w, eps), log max(h, eps))    # eps = 1e-3
 ```

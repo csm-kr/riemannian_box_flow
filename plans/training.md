@@ -71,7 +71,7 @@ loss = F.mse_loss(u_pred, u_target)
 | schedule | linear warmup (1k step) → cosine decay |
 | grad clip | 1.0 |
 | batch size | 64 |
-| 학습 step | 50k (소규모 sanity); 필요 시 확장 |
+| 학습 step | **35k** (실측: 35k 직전에서 val_loss ~0.084 수렴, 그 후 노이즈 plateau) |
 | AMP | bf16 (가능 시) |
 
 DINOv2 인코더는 frozen이라 trainable params만 옵티마이저에 등록.
@@ -191,7 +191,7 @@ training/
 
 1. **Forward/backward sanity** — random batch 1개로 `loss.backward()` 통과 (작은 모델)
 2. **Short run** — ~500-2000 step, val loss 떨어짐 / GIF 합리성 확인
-3. **Full train (50k step)** — train loss / val loss 곡선 + 주기적 GIF 출력
+3. **Full train (35k step)** — train loss / val loss 곡선 + 주기적 GIF 출력 (실측: 60분 / RTX 6000)
 4. **K 비교** — K=10, 16, 30 inference 결과 비교
 
 > Box L1 + GIoU auxiliary는 Phase 1에서 사용하지 않음 (FM-only). 필요 시 향후 별도 실험.
