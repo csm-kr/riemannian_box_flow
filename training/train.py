@@ -1,4 +1,4 @@
-"""CLI entry point for Phase 1 Euclidean training."""
+"""CLI entry point for flow matching training (Euclidean | Riemannian)."""
 
 import argparse
 
@@ -8,8 +8,19 @@ from .trainer import train
 
 def _parse_args() -> TrainConfig:
     cfg = TrainConfig()
-    p = argparse.ArgumentParser(description="Phase 1 Euclidean (signal) flow training")
+    p = argparse.ArgumentParser(description="Flow matching training")
     # Model
+    p.add_argument("--model",
+                   choices=["signal", "chart", "chart_native", "chart_linear",
+                            "hybrid", "chart_boxloss", "local", "logit_native"],
+                   default=cfg.model,
+                   help="S-E, S-R, C-R, C-E, exp007 hybrid, exp008 chart_boxloss, "
+                        "exp009 local, exp012 logit_native (symmetric logit chart)")
+    p.add_argument("--wide-dataset", action="store_true",
+                   help="Use wide-scale GT box distribution (17× size, plans/riem_strength.md exp 005)")
+    p.add_argument("--init-prior", choices=["default", "small_size"],
+                   default=cfg.init_prior,
+                   help="b_0 prior. 'small_size': w,h ~ U[0.01, 0.05] (exp 010/011)")
     p.add_argument("--hidden-size", type=int, default=cfg.hidden_size)
     p.add_argument("--depth", type=int, default=cfg.depth)
     p.add_argument("--num-heads", type=int, default=cfg.num_heads)
@@ -25,7 +36,10 @@ def _parse_args() -> TrainConfig:
     # Inference / vis
     p.add_argument("--K", type=int, default=cfg.K, dest="K")
     # Logging
-    p.add_argument("--out-dir", type=str, default=cfg.out_dir)
+    p.add_argument("--out-root", type=str, default=cfg.out_root,
+                   help="Parent dir for auto-numbered run dirs (default: outputs)")
+    p.add_argument("--run-name", type=str, default=cfg.run_name,
+                   help="Run name suffix; final dir = out_root/{NNN:03d}_{run_name}")
     p.add_argument("--log-every", type=int, default=cfg.log_every)
     p.add_argument("--val-every", type=int, default=cfg.val_every)
     p.add_argument("--gif-every", type=int, default=cfg.gif_every)
@@ -36,6 +50,9 @@ def _parse_args() -> TrainConfig:
 
     args = p.parse_args()
 
+    cfg.model = args.model
+    cfg.wide_dataset = args.wide_dataset
+    cfg.init_prior = args.init_prior
     cfg.hidden_size = args.hidden_size
     cfg.depth = args.depth
     cfg.num_heads = args.num_heads
@@ -50,7 +67,8 @@ def _parse_args() -> TrainConfig:
 
     cfg.K = args.K
 
-    cfg.out_dir = args.out_dir
+    cfg.out_root = args.out_root
+    cfg.run_name = args.run_name
     cfg.log_every = args.log_every
     cfg.val_every = args.val_every
     cfg.gif_every = args.gif_every

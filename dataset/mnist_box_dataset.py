@@ -16,17 +16,19 @@ _SPLIT_SIZES = {"train": 50000, "val": 5000, "test": 5000}
 
 
 class MNISTBoxDataset(Dataset):
-    def __init__(self, split: str = "train", root: str = "./data"):
+    def __init__(self, split: str = "train", root: str = "./data",
+                 wide: bool = False):
         assert split in _SPLIT_SIZES, f"split은 {list(_SPLIT_SIZES)}중 하나여야 함"
         self.length = _SPLIT_SIZES[split]
         self.source = MNISTSource(root=root, train=(split == "train"))
+        self.wide = wide
 
     def __len__(self):
         return self.length
 
     def __getitem__(self, _idx):
         digits = [self.source.get_digit(i) for i in range(10)]
-        gt_boxes = sample_gt_boxes()                    # (10, 4) normalized cx,cy,w,h
+        gt_boxes = sample_gt_boxes(wide=self.wide)      # (10, 4) normalized cx,cy,w,h
         canvas = compose_canvas(digits, gt_boxes)       # (H, W, 3) uint8
 
         init_signals = sample_init_signal()             # (10, 4) in [-3, 3]

@@ -88,14 +88,17 @@ def draw_trajectory_frames(
     """
     bg = _to_bgr_uint8(image)
     K1 = len(traj_boxes)
+    n_box = traj_boxes[0].shape[0]
     frames: list[np.ndarray] = []
     for k, boxes in enumerate(traj_boxes):
         canvas = bg.copy()
         if gt_boxes is not None:
-            for i in range(10):
-                _draw_box(canvas, gt_boxes[i], BOX_COLORS[i], dashed=True, H=H, W=W)
-        for i in range(10):
-            _draw_box(canvas, boxes[i], BOX_COLORS[i], label=str(i), H=H, W=W)
+            for i in range(min(n_box, gt_boxes.shape[0])):
+                _draw_box(canvas, gt_boxes[i], BOX_COLORS[i % len(BOX_COLORS)],
+                          dashed=True, H=H, W=W)
+        for i in range(n_box):
+            _draw_box(canvas, boxes[i], BOX_COLORS[i % len(BOX_COLORS)],
+                      label=str(i), H=H, W=W)
         if step_label:
             cv2.putText(
                 canvas, f"t={k}/{K1 - 1}", (4, 14),
