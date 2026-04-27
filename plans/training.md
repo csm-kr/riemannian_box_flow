@@ -52,17 +52,11 @@ s_t = (1 - t_b) * s_0 + t_b * s_1
 u_target = s_1 - s_0
 u_pred   = model(s_t, t, image)                # SignalFlowModel
 
-loss_fm = F.mse_loss(u_pred, u_target)
-
-# (옵션) box-space aux
-loss = loss_fm
-if lambda_box > 0:
-    s_hat_1 = s_t + (1 - t_b) * u_pred
-    b_hat_1 = signal_to_box(s_hat_1)
-    loss = loss + lambda_box * (l1(b_hat_1, b_1) + giou_loss(b_hat_1, b_1))
+loss = F.mse_loss(u_pred, u_target)
 ```
 
-`λ_box`는 0으로 시작 (FM-only). 학습 안정 후 0.1~1.0 범위에서 실험.
+**Phase 1 = FM MSE 단독.** box-space auxiliary (L1 + GIoU)는 도입하지 않는다.
+필요 시 Phase 2 이후 별도 실험으로 검토.
 
 ---
 
@@ -77,7 +71,7 @@ if lambda_box > 0:
 | schedule | linear warmup (1k step) → cosine decay |
 | grad clip | 1.0 |
 | batch size | 64 |
-| 학습 step | 50k (소규모 sanity); 필요 시 확장 |
+| 학습 step | **35k** (실측: 35k 직전에서 val_loss ~0.084 수렴, 그 후 노이즈 plateau) |
 | AMP | bf16 (가능 시) |
 
 DINOv2 인코더는 frozen이라 trainable params만 옵티마이저에 등록.
@@ -141,26 +135,53 @@ save as: outputs/gif/{step:06d}_{idx}.gif
 
 ---
 
-## 7. 체크포인트 / 로깅
+## 7. 출력 디렉토리 / 체크포인트 / 로깅
 
-- 체크포인트: `outputs/ckpt/step_{N}.pt` (model state_dict + optimizer + step)
-- 마지막 best val loss는 별도 `best.pt`
-- 로깅: TensorBoard (`outputs/tb/`), 이미 docker-compose에서 6006 포트 노출
+### 7.1 출력 디렉토리 — 실험 자동 numbering
+trainer는 시작 시 `outputs/`에 존재하는 `NNN_*` 폴더를 스캔하고 다음 번호를 할당:
+
+```
+outputs/
+├─ 001_smoke/
+├─ 002_short_run/
+├─ 003_full_run/
+│   ├─ tb/                       ← TensorBoard event files
+│   ├─ gif/step_{N:06d}.gif      ← 주기적 trajectory GIF
+│   ├─ ckpt/step_{N:06d}.pt      ← 주기적 ckpt (model + optim)
+│   ├─ ckpt/final.pt             ← 마지막 ckpt (model only)
+│   └─ train_log.txt             ← stdout mirror
+└─ ...
+```
+
+CLI: `--run-name {name}` (기본 `run`). 같은 이름이라도 번호가 다르면 충돌하지 않음.
+
+### 7.2 체크포인트
+- 주기적: `ckpt/step_{N:06d}.pt` (model_state + optim_state + step + cfg)
+- 최종: `ckpt/final.pt` (model_state + cfg, optim 제외해 작게)
+
+### 7.3 로깅
+- TensorBoard: 매 `log_every` step에 `train/loss`, `train/lr` scalar
+- 매 `val_every` step에 `val/loss` scalar
+- 매 `gif_every` step에 trajectory GIF는 `gif/` 디렉토리에 파일로 저장 + (선택) `add_image`로 frame 일부 TB에 등록
+- 6006 포트는 docker-compose에 이미 노출됨 → `tensorboard --logdir outputs --bind_all`
 
 ---
 
-## 8. 파일 구조 (예정)
+## 8. 파일 구조
 
 ```
 training/
 ├─ __init__.py
-├─ config.py            ← dataclass config (lr, K, λ_box, ...)
-├─ losses.py            ← fm_loss, l1_box, giou_loss
-├─ ode_sampler.py       ← Euler K-step (RK4는 future)
-├─ metrics.py           ← iou, giou (val용)
-├─ trainer.py           ← train loop, val, ckpt, tb
-└─ train.py             ← entry point (config 로드 + run)
+├─ config.py            ← dataclass config (lr, K, ...)
+├─ visualize.py         ← trajectory → frames → GIF (구현 완료)
+├─ trainer.py           ← train loop, val, ckpt, periodic GIF dump
+└─ train.py             ← entry point (CLI args → config → run)
 ```
+
+`losses.py` / `ode_sampler.py` / `metrics.py`는 **별도 모듈로 만들지 않는다**:
+- FM loss는 `SignalFlowModel.fm_loss`에 내장
+- ODE sample은 `SignalFlowModel.sample`에 내장
+- IoU/GIoU 메트릭은 trainer 안에서 inline (필요 최소만)
 
 `__main__`에서 sanity check: 작은 batch로 1-step forward/backward, ODE 1-step 동작 확인.
 
@@ -168,16 +189,17 @@ training/
 
 ## 9. 학습 절차 (단계별)
 
-1. **Forward/backward sanity** — random batch 1개로 `loss.backward()` 통과
-2. **Overfit micro-set** — 1 batch 100회 반복 → loss 거의 0, predicted box ≈ GT box 확인
-3. **Full train (50k step)** — train loss / val loss 곡선 + GIF 출력
+1. **Forward/backward sanity** — random batch 1개로 `loss.backward()` 통과 (작은 모델)
+2. **Short run** — ~500-2000 step, val loss 떨어짐 / GIF 합리성 확인
+3. **Full train (35k step)** — train loss / val loss 곡선 + 주기적 GIF 출력 (실측: 60분 / RTX 6000)
 4. **K 비교** — K=10, 16, 30 inference 결과 비교
-5. **(옵션) λ_box 도입** — FM loss plateau 후 box aux 추가 효과
+
+> Box L1 + GIoU auxiliary는 Phase 1에서 사용하지 않음 (FM-only). 필요 시 향후 별도 실험.
 
 ---
 
 ## 10. 결정사항 (확정)
-1. ✅ Phase 1 = Euclidean signal flow만 학습
+1. ✅ Phase 1 = Euclidean signal flow만 학습, **FM MSE 단독 loss**
 2. ✅ s_0는 학습 step마다 fresh sampling (`clip(N(0,I), -3, 3)`)
 3. ✅ inference는 ODE Euler, K ∈ [10, 30] (default 16)
 4. ✅ optimizer = AdamW, lr 1e-4, warmup 1k + cosine
@@ -187,12 +209,11 @@ training/
 ---
 
 ## 11. TBD (구현 단계)
-- 정확한 batch size / step 수 (GPU 메모리 보고 조정)
-- bf16 vs fp32 (DINOv2 안정성 확인)
-- λ_box 도입 시점 / 값
+- bf16 vs fp32 (DINOv2 안정성 확인 — short run은 fp32로 통과)
 - RK4 solver 추가 여부
-- val 빈도 / GIF 저장 빈도
+- val 빈도 / GIF 저장 빈도 (full run에서 조정 가능)
 - DINOv2 patch token 정확한 수 (model.md §6 TBD와 동일)
+- TB에 GIF frame 일부를 `add_image`로 띄울지 (현재는 파일로만)
 
 ---
 

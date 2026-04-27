@@ -49,7 +49,9 @@ RUN pip install \
     imageio \
     Pillow \
     matplotlib \
-    tqdm
+    tqdm \
+    tensorboard \
+    scipy
 
 # ────────────────────────────────────────────────
 # Project code

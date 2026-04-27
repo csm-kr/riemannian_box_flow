@@ -6,6 +6,7 @@ services:
     image: bflow
     container_name: bflow_dev
     runtime: nvidia
+    shm_size: "8gb"   # PyTorch DataLoader workers — Docker 기본 64MB로는 부족
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
