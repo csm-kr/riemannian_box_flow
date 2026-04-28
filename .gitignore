@@ -1,6 +1,12 @@
 data/
-outputs/
+outputs/*
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .claude/
+
+# Phase 3.0 — track REPORT, figures, and side-by-side GIFs (for README)
+!outputs/logit_strengths/
+outputs/logit_strengths/**/excess_l1.pt
+outputs/logit_strengths/gifs/per_index/
+outputs/logit_strengths/gifs/snapshots/

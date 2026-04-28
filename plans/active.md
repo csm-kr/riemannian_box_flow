@@ -1,15 +1,35 @@
 # active.md — 현재 전체 진행 방향
 
 ## 현재 단계
-**Phase 2.5 — 좌표계 셋업 분석** (`plans/setup_analysis.md`)
+**Phase 3.0 완료** — Logit-space FM 두 강점 검증 끝. plan 은 `plans/archive/logit_strengths.md`, 결론은 `outputs/logit_strengths/REPORT.md`.
 
-Phase 2 검증에서 Eucl이 모든 axis 우위였으나, 외부 repo (`csm-kr/riemannian_flow_det`)는 같은 도메인에서 Riem 우위 보고. 분석 결과:
+다음 진행 옵션:
+- (Opt-A) 013 wide-dataset 학습 → tiny / huge bucket 검증
+- (Future) COCO 등 실제 도메인 H2 재현
+- (마무리) PR / README 통합 후 다음 phase 결정
+
+---
+
+## 직전 단계 (Phase 3.0 — Logit-space FM 두 강점 검증 완료)
+
+`plans/archive/logit_strengths.md`, `outputs/logit_strengths/REPORT.md` 참조.
+- **H1 (boundary)** — K=2 IoU 격차 +0.048 (signal 0.7528 → logit 0.8008), K↑ 일수록 +0.001 ~ +0.011 로 수렴. **K-robustness 가 본 강점**.
+- **H2 (scale-sensitive size)** — small bucket +0.017, ratio 4–8 +0.016. **center_err 가 IoU 우위의 주된 원인** (size_err 도 logit 우위지만 절대 격차는 작음). logit 의 `1/(x(1−x))` 가 4성분 모두 boundary-amplifying.
+
+## 직전 단계 (Phase 2.6 — Riem 이기는 셋업 탐색 완료)
+
+`plans/archive/riem_strength.md`, `outputs/comparison_riem_strength/REPORT.md` 참조.
+- 6 시나리오 모두 box-IoU 에서 S-E 우위. hybrid 만 scale-relative center error 미세 우위.
+- **새 방법**: hybrid (`model/flow_hybrid.py`) — 향후 도메인 검증 대상.
+
+## 직전 단계 (Phase 2.5 — 좌표계 셋업 분석 완료)
+
+`plans/archive/setup_analysis.md` 참조.
+- Phase 2 검증에서 Eucl이 모든 axis 우위였으나, 외부 repo (`csm-kr/riemannian_flow_det`)는 같은 도메인에서 Riem 우위 보고. 분석 결과:
 - 두 repo의 차이는 **모델 state space** (signal vs chart) 선택
 - 우리 Riem = signal model + chart trajectory (state-dep u, 학습 어려움)
 - 그쪽 Riem = chart model + chart trajectory (constant u, 학습 쉬움)
 - → **"Riem이 좋다/나쁘다"가 아니라 "model state ↔ trajectory state 일치 여부"가 결정**
-
-진행 옵션은 `plans/setup_analysis.md §7` 참조 (A: C-R만 추가 학습, B: 4 baseline 매트릭스, C: 코드 변경 없이 분석만).
 
 ## 직전 단계 (Phase 2 완료)
 **Phase 2 — Riemannian baseline 구축 → Euclidean과 공정 비교**
@@ -123,10 +143,13 @@ psi_inv(y) = (y_cx, y_cy, exp(y_lw), exp(y_lh))
 1. ~~Dataset~~ ✓
 2. ~~Model (Phase 1)~~ ✓
 3. ~~Training Phase 1 Euclidean~~ ✓ (35k step)
-4. **Phase 2 — Riemannian baseline + 비교** ← 현재
-5. 마무리: archive 정리, 비교 GIF / metric 표
+4. ~~Phase 2 — Riemannian baseline + 비교~~ ✓
+5. ~~Phase 2.5 — 셋업 분석~~ ✓
+6. ~~Phase 2.6 — Riem 이기는 셋업 탐색~~ ✓
+7. ~~Phase 3.0 — Logit-space FM 두 강점 검증~~ ✓
+8. **마무리: plans archive + README + PR ← 현재**
 
-## 다음 단계 전환 조건 (Phase 2 → 마무리)
-- Riemannian 학습 수렴 (val_loss / mean IoU plateau)
-- Euclidean vs Riemannian 비교 GIF 확보 (per-index + 가로 panel)
-- `plans/training.md` → `plans/archive/`
+## 다음 단계 옵션
+- (Opt-A) 013 wide-dataset 학습 → tiny / huge bucket 검증
+- (Future) 실제 도메인 (COCO 등) 에서 H2 격차 재현
+- (Future) hybrid 모델 (`model/flow_hybrid.py`) 다른 도메인 적용
