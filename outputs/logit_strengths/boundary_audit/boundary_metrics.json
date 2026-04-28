@@ -1,0 +1,152 @@
+{
+  "ckpt_signal": "outputs/001_fullrun/ckpt/final.pt",
+  "ckpt_logit": "outputs/013_logit_native_default/ckpt/final.pt",
+  "seed": 0,
+  "k_values": [
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "n_total_boxes": 50000,
+  "rows": [
+    {
+      "K": 2,
+      "model": "signal",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.014940000139176846,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.7528054714202881,
+      "iou_no_clamp_mean": 0.7528054714202881
+    },
+    {
+      "K": 2,
+      "model": "logit_native",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.0066200001165270805,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.8007532954216003,
+      "iou_no_clamp_mean": 0.8007532954216003
+    },
+    {
+      "K": 4,
+      "model": "signal",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.009499999694526196,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.8015512228012085,
+      "iou_no_clamp_mean": 0.8015512228012085
+    },
+    {
+      "K": 4,
+      "model": "logit_native",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.005900000222027302,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.8203029632568359,
+      "iou_no_clamp_mean": 0.8203029632568359
+    },
+    {
+      "K": 8,
+      "model": "signal",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.007939999923110008,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.8094502091407776,
+      "iou_no_clamp_mean": 0.8094502091407776
+    },
+    {
+      "K": 8,
+      "model": "logit_native",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.00687999976798892,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.8198962211608887,
+      "iou_no_clamp_mean": 0.8198962211608887
+    },
+    {
+      "K": 16,
+      "model": "signal",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.010359999723732471,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.8039721250534058,
+      "iou_no_clamp_mean": 0.8039721250534058
+    },
+    {
+      "K": 16,
+      "model": "logit_native",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.008179999887943268,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.813490629196167,
+      "iou_no_clamp_mean": 0.813490629196167
+    },
+    {
+      "K": 32,
+      "model": "signal",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.012299999594688416,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.7943931221961975,
+      "iou_no_clamp_mean": 0.7943931221961975
+    },
+    {
+      "K": 32,
+      "model": "logit_native",
+      "coord_oob_rate": 0.0,
+      "canvas_oob_rate": 0.009600000455975533,
+      "excess_l1_mean": 0.0,
+      "excess_l1_p99": 0.0,
+      "iou_clamp_mean": 0.8055806756019592,
+      "iou_no_clamp_mean": 0.8055806756019592
+    }
+  ],
+  "wilcoxon": [
+    {
+      "K": 2,
+      "iou_signal": 0.7528055310249329,
+      "iou_logit": 0.8007532358169556,
+      "diff_logit_minus_signal": 0.03928327560424805,
+      "p_value": 0.0
+    },
+    {
+      "K": 4,
+      "iou_signal": 0.8015512824058533,
+      "iou_logit": 0.8203029036521912,
+      "diff_logit_minus_signal": 0.01024085283279419,
+      "p_value": 2.7086147662608333e-128
+    },
+    {
+      "K": 8,
+      "iou_signal": 0.8094501495361328,
+      "iou_logit": 0.8198962211608887,
+      "diff_logit_minus_signal": 0.0017347931861877441,
+      "p_value": 2.8127927828333577e-14
+    },
+    {
+      "K": 16,
+      "iou_signal": 0.803972065448761,
+      "iou_logit": 0.813490629196167,
+      "diff_logit_minus_signal": 0.0007567405700683594,
+      "p_value": 1.2829636319407107e-07
+    },
+    {
+      "K": 32,
+      "iou_signal": 0.7943930625915527,
+      "iou_logit": 0.805580735206604,
+      "diff_logit_minus_signal": 0.0026445388793945312,
+      "p_value": 1.173933592636082e-25
+    }
+  ]
+}
