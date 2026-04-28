@@ -19,6 +19,7 @@ from model.flow_chart import ChartFlowModel
 from model.flow_chart_boxloss import ChartBoxLossFlowModel
 from model.flow_chart_linear import ChartLinearFlowModel
 from model.flow_chart_native import ChartNativeFlowModel
+from model.flow_corner_logit import CornerLogitFlowModel
 from model.flow_hybrid import HybridFlowModel
 from model.flow_local import LocalChartFlowModel
 from model.flow_logit_native import LogitNativeFlowModel
@@ -37,6 +38,7 @@ _MODEL_REGISTRY = {
     "chart_boxloss":  ChartBoxLossFlowModel,  # exp 008: chart model + box-space loss
     "local":          LocalChartFlowModel,    # exp 009: scale-aware Local chart (body frame)
     "logit_native":   LogitNativeFlowModel,   # exp 012: symmetric logit chart on all 4 dims
+    "corner_logit":   CornerLogitFlowModel,   # exp 014: left/top corner-logit (in-canvas decode)
 }
 
 
@@ -144,15 +146,15 @@ def train(cfg: TrainConfig):
         n_queries=cfg.n_queries,
         encoder_pretrained=cfg.encoder_pretrained, encoder_freeze=cfg.encoder_freeze,
     )
-    # init_prior is supported on signal + chart_native + logit_native
-    # (exp 010/011/012). Other models still use their hardcoded prior;
+    # init_prior is supported on signal + chart_native + logit_native + corner_logit.
+    # Other models still use their hardcoded prior;
     # warn if a non-default prior is requested for them.
-    if cfg.model in ("signal", "chart_native", "logit_native"):
+    if cfg.model in ("signal", "chart_native", "logit_native", "corner_logit"):
         model_kwargs["init_prior"] = cfg.init_prior
     elif cfg.init_prior != "default":
         raise ValueError(
             f"--init-prior={cfg.init_prior!r} only supported for "
-            f"--model {{signal,chart_native}}, got {cfg.model!r}"
+            f"--model {{signal,chart_native,logit_native,corner_logit}}, got {cfg.model!r}"
         )
     model = model_cls(**model_kwargs).to(device)
 

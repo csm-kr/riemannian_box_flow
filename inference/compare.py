@@ -35,6 +35,7 @@ from model.trajectory import sample_init_box, signal_decode
 
 from model.flow_chart_boxloss import ChartBoxLossFlowModel  # noqa: E402
 from model.flow_chart_linear import ChartLinearFlowModel  # noqa: E402
+from model.flow_corner_logit import CornerLogitFlowModel  # noqa: E402
 from model.flow_hybrid import HybridFlowModel  # noqa: E402
 from model.flow_local import LocalChartFlowModel  # noqa: E402
 from model.flow_logit_native import LogitNativeFlowModel  # noqa: E402
@@ -48,6 +49,7 @@ _MODEL_CLS = {
     "chart_boxloss":  ChartBoxLossFlowModel,
     "local":          LocalChartFlowModel,
     "logit_native":   LogitNativeFlowModel,
+    "corner_logit":   CornerLogitFlowModel,
 }
 _BUCKET_NAMES = ("small", "medium", "large")
 

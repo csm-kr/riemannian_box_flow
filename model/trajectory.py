@@ -48,6 +48,46 @@ def logit_decode(y: torch.Tensor) -> torch.Tensor:
     return torch.sigmoid(y)
 
 
+def corner_logit_encode(b: torch.Tensor, eps: float = EPS) -> torch.Tensor:
+    """Left/top corner chart: pos normalized by available range (1 − size).
+
+      y_0 = logit( (cx − w/2) / (1 − w) )       (left margin / max-left-margin)
+      y_1 = logit( (cy − h/2) / (1 − h) )
+      y_2 = logit(w)
+      y_3 = logit(h)
+
+    All four logit inputs are clamped to [eps, 1-eps] so the encoding stays
+    finite even when b is on canvas boundaries or when (cx, w) make
+    (cx − w/2)/(1 − w) fall outside [0, 1] (init prior = default can produce
+    cx + w/2 > 1; eps clamp absorbs that).
+    """
+    cx, cy, w, h = b[..., 0], b[..., 1], b[..., 2], b[..., 3]
+    w_c = w.clamp(min=eps, max=1.0 - eps)
+    h_c = h.clamp(min=eps, max=1.0 - eps)
+    nx = ((cx - w / 2) / (1.0 - w_c)).clamp(min=eps, max=1.0 - eps)
+    ny = ((cy - h / 2) / (1.0 - h_c)).clamp(min=eps, max=1.0 - eps)
+    y0 = (nx / (1.0 - nx)).log()
+    y1 = (ny / (1.0 - ny)).log()
+    y2 = (w_c / (1.0 - w_c)).log()
+    y3 = (h_c / (1.0 - h_c)).log()
+    return torch.stack([y0, y1, y2, y3], dim=-1)
+
+
+def corner_logit_decode(y: torch.Tensor) -> torch.Tensor:
+    """Inverse of corner_logit_encode. Always returns boxes in [0,1].
+
+      w  = sigmoid(y_2)
+      h  = sigmoid(y_3)
+      cx = w/2 + (1 − w) · sigmoid(y_0)         ∈ [w/2, 1 − w/2]
+      cy = h/2 + (1 − h) · sigmoid(y_1)
+    """
+    w = torch.sigmoid(y[..., 2])
+    h = torch.sigmoid(y[..., 3])
+    cx = w / 2 + (1.0 - w) * torch.sigmoid(y[..., 0])
+    cy = h / 2 + (1.0 - h) * torch.sigmoid(y[..., 1])
+    return torch.stack([cx, cy, w, h], dim=-1)
+
+
 def sample_init_box(reference: torch.Tensor, prior: str = "default") -> torch.Tensor:
     """Sample b_0 in box space. Used by both signal/chart-native models so the
     init prior is shared.
@@ -195,6 +235,36 @@ def _sanity():
     extreme = torch.tensor([[[0.0, 0.0, 1.0, 1.0]]])
     y_ext = logit_encode(extreme)
     assert torch.isfinite(y_ext).all()
+
+    # 9c) corner-logit round-trip on safely-bounded box (in-canvas valid box)
+    #     Build cx, cy strictly inside [w/2, 1-w/2] so encode is unambiguous.
+    rng = torch.Generator().manual_seed(123)
+    w_safe = torch.empty(B, 10, 1).uniform_(EPS, 1 - EPS, generator=rng)
+    h_safe = torch.empty(B, 10, 1).uniform_(EPS, 1 - EPS, generator=rng)
+    nx_in  = torch.empty(B, 10, 1).uniform_(EPS, 1 - EPS, generator=rng)
+    ny_in  = torch.empty(B, 10, 1).uniform_(EPS, 1 - EPS, generator=rng)
+    cx_in = (w_safe / 2 + (1 - w_safe) * nx_in)
+    cy_in = (h_safe / 2 + (1 - h_safe) * ny_in)
+    b_corner = torch.cat([cx_in, cy_in, w_safe, h_safe], dim=-1)
+    y_corner = corner_logit_encode(b_corner)
+    b_back = corner_logit_decode(y_corner)
+    assert torch.allclose(b_back, b_corner, atol=1e-4), \
+        f"corner round-trip max diff = {(b_back - b_corner).abs().max():.3e}"
+    # decode of arbitrary y always produces in-canvas box (cx − w/2 ≥ 0, cx + w/2 ≤ 1)
+    y_rand = torch.randn(B, 10, 4) * 5
+    b_rand = corner_logit_decode(y_rand)
+    cx_, cy_, w_, h_ = b_rand[..., 0], b_rand[..., 1], b_rand[..., 2], b_rand[..., 3]
+    assert (cx_ - w_ / 2 >= -1e-6).all(), (cx_ - w_ / 2).min()
+    assert (cx_ + w_ / 2 <=  1 + 1e-6).all(), (cx_ + w_ / 2).max()
+    assert (cy_ - h_ / 2 >= -1e-6).all() and (cy_ + h_ / 2 <= 1 + 1e-6).all()
+    # finite even on degenerate input (cx + w/2 > 1)
+    b_bad = torch.tensor([[[0.99, 0.99, 0.5, 0.5]]])
+    y_bad = corner_logit_encode(b_bad)
+    assert torch.isfinite(y_bad).all()
+    # logit(0.5)=0 ⇒ b = (0.5, 0.5, w_default, h_default) when y = 0
+    half = torch.zeros(1, 1, 4)
+    b_half = corner_logit_decode(half)
+    assert torch.allclose(b_half, torch.tensor([[[0.5, 0.5, 0.5, 0.5]]]), atol=1e-6)
 
     # 9b) sample_init_box prior shapes / ranges
     ref = torch.empty(B, 10, 4)

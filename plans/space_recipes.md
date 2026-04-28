@@ -162,20 +162,67 @@ ODE inference: logit space에서 Euler, 마지막 `b = sigmoid(y)`.
 
 ---
 
-## 5. 정리표
+## 5. Corner-logit (실험 014)
 
-| Space | encode | decode | model 입력 | 학습 target | constant in t? | 4성분 대칭 | bounded |
-|---|---|---|---|---|---|---|---|
-| Signal (S-E) | `6b−3` | `(s+3)/6` | s | `s_1 − s_0` | ✅ | ✅ | ✅ ±3 |
-| psi+S (S-R) | psi | psi_inv | s (b_t 거쳐) | `ds/dt` (state-dep) | ❌ | ❌ | ✅ |
-| Chart (C-R) | psi | psi_inv | y | `y_1 − y_0` | ✅ | ❌ (pos vs log size) | ❌ size 한쪽만 |
-| **Logit** | `logit b` | `sigmoid y` | y | `y_1 − y_0` | ✅ | ✅ | ❌ unbounded |
+= "left/top 모서리 + size 분리 — pos는 size에 의해 정규화된 corner 위치를 logit"
 
-**우승 조합 (logit_native, 0.815)** = constant target + 4성분 대칭 + signal-급 magnitude.
+### 5.1 변환
+```
+y_0 = logit( (cx − w/2) / (1 − w) )       # 좌측 여백을 가능 범위(1−w)로 정규화
+y_1 = logit( (cy − h/2) / (1 − h) )       # 상단 여백 정규화
+y_2 = logit(w)
+y_3 = logit(h)
+eps = 1e-3 (모든 logit 입력에 클램프)
+```
+decode (in-canvas 자동 보장):
+```
+w  = sigmoid(y_2)
+h  = sigmoid(y_3)
+cx = w/2 + (1 − w) · sigmoid(y_0)         # ∈ [w/2, 1 − w/2]
+cy = h/2 + (1 − h) · sigmoid(y_1)
+```
+
+성질:
+- **decode 결과 박스가 항상 in-canvas** (cx ∈ [w/2, 1−w/2]) — 모델이 invalid 박스를 만들 수 없음.
+- pos·size 모두 logit space → 4성분 모두 unbounded 대칭, scale 균형.
+- pos는 size에 의존 (1−w로 정규화) → "박스가 클수록 위치 자유도가 좁다"는 사실을 chart가 자연스럽게 인코딩.
+
+### 5.2 학습 1 step
+```
+b_1, b_0 = ... (default init; b_0의 cx + w/2 > 1 가능 → encode에서 eps 클램프)
+y_0 = corner_logit_encode(b_0),  y_1 = corner_logit_encode(b_1)
+t   ~ U(0, 1)
+y_t = (1 − t) y_0 + t y_1
+u   = y_1 − y_0                                  # corner-logit velocity, constant
+û  = v_θ(y_t, t, x)                              # model: corner-logit → corner-logit
+L   = ‖ û − u ‖²
+```
+
+### 5.3 그 space에서의 init range (default prior)
+- 4성분 모두 logit 도메인 → 각 성분 [logit eps, logit(1−eps)] = [−6.9, +6.9].
+- pos 성분 (정규화된 corner): default prior에서 typical [−2, +2] (013과 비슷).
+- size 성분 (logit w/h): 013과 동일.
+
+ODE inference: corner-logit space에서 Euler, 마지막 corner_logit_decode.
 
 ---
 
-## 6. small_size init prior (각 space에서의 range)
+## 6. 정리표
+
+| Space | encode | decode | model 입력 | 학습 target | constant in t? | 4성분 대칭 | bounded | in-canvas 보장 |
+|---|---|---|---|---|---|---|---|---|
+| Signal (S-E) | `6b−3` | `(s+3)/6` | s | `s_1 − s_0` | ✅ | ✅ | ✅ ±3 | ❌ |
+| psi+S (S-R) | psi | psi_inv | s (b_t 거쳐) | `ds/dt` (state-dep) | ❌ | ❌ | ✅ | ❌ |
+| Chart (C-R) | psi | psi_inv | y | `y_1 − y_0` | ✅ | ❌ (pos vs log size) | ❌ | ❌ |
+| **Logit** | `logit b` | `sigmoid y` | y | `y_1 − y_0` | ✅ | ✅ | ❌ | ❌ |
+| **Corner-logit** | left/top 정규화 + logit | size 후 corner | y | `y_1 − y_0` | ✅ | ✅ | ❌ | ✅ |
+
+**기존 우승 (logit_native, 0.815)** = constant target + 4성분 대칭 + signal-급 magnitude.
+**Corner-logit 가설** = 위 세 성질 유지 + decode가 박스를 canvas 밖으로 밀어낼 수 없으므로 size error 추가 감소 가능.
+
+---
+
+## 7. small_size init prior (각 space에서의 range)
 
 | Space | size 성분의 init range |
 |---|---|
@@ -183,5 +230,7 @@ ODE inference: logit space에서 Euler, 마지막 `b = sigmoid(y)`.
 | signal | `6·[0.01,0.05] − 3 = [−2.94, −2.7]` |
 | chart psi `log w` | `[log 0.01, log 0.05] = [−4.6, −3.0]` |
 | logit `logit w` | `[logit 0.01, logit 0.05] ≈ [−4.6, −2.94]` |
+| corner-logit pos | logit((cx−w/2)/(1−w)), 1−w ∈ [0.95, 0.99] → pos 분포 거의 그대로 [−2, +2] |
+| corner-logit size | 013 logit과 동일 [−4.6, −2.94] |
 
-→ small_size prior는 size 성분만 **음의 영역으로 강제 이동** (logit/chart 모두). 위치는 default와 동일.
+→ small_size prior는 size 성분만 **음의 영역으로 강제 이동** (logit/chart/corner 모두). 위치는 default와 동일.

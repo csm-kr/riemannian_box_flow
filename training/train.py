@@ -12,10 +12,12 @@ def _parse_args() -> TrainConfig:
     # Model
     p.add_argument("--model",
                    choices=["signal", "chart", "chart_native", "chart_linear",
-                            "hybrid", "chart_boxloss", "local", "logit_native"],
+                            "hybrid", "chart_boxloss", "local", "logit_native",
+                            "corner_logit"],
                    default=cfg.model,
                    help="S-E, S-R, C-R, C-E, exp007 hybrid, exp008 chart_boxloss, "
-                        "exp009 local, exp012 logit_native (symmetric logit chart)")
+                        "exp009 local, exp012 logit_native (symmetric logit chart), "
+                        "exp014 corner_logit (left/top corner-logit, in-canvas decode)")
     p.add_argument("--wide-dataset", action="store_true",
                    help="Use wide-scale GT box distribution (17× size, plans/riem_strength.md exp 005)")
     p.add_argument("--init-prior", choices=["default", "small_size"],
